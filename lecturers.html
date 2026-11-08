@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neshama Leadership Institute: Lecturers and courses</title>
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e1a2b;--card:#16263d;--ink:#f4efe4;--muted:#a9b6c8;--gold:#f2b84b;--line:#2b4162}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.55}
+.w{max-width:640px;margin:0 auto;padding:0 20px}
+nav{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;max-width:640px;margin:0 auto}
+nav a{color:var(--gold);font-weight:600;text-decoration:none}
+.logo{max-height:48px;width:auto;display:block}
+.bname{font-weight:800;color:var(--gold)}
+h1{font-size:34px;line-height:1.12;font-weight:800;margin:18px 0 10px}
+h2{font-size:26px;font-weight:800;margin:0 0 14px}
+p{color:var(--muted);font-size:17px;margin:0 0 14px}
+section{padding:36px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+.lec{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.ph{aspect-ratio:1/1;background:#1d3556;display:grid;place-items:center;font-size:44px;font-weight:800;color:var(--gold)}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.lec div.t{padding:12px 14px 16px}
+.lec strong{display:block;font-size:16px;line-height:1.25}
+.lec small{display:block;color:var(--gold);margin:2px 0 6px}
+.lec span{color:var(--muted);font-size:14px;line-height:1.4;display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 22px;margin-bottom:16px}
+.card h3{margin:0 0 4px;font-size:21px;color:var(--gold)}
+.card p.sub{font-size:15px;margin-bottom:10px}
+.card ul{margin:0;padding-left:20px;color:var(--ink)}
+.card li{margin:6px 0}
+.yt{aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#000}
+.yt iframe{width:100%;height:100%;border:0}
+.btn{display:block;width:100%;margin-top:22px;padding:16px;border-radius:99px;background:var(--gold);color:#14233a;font:800 17px inherit;text-align:center;text-decoration:none}
+a:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+footer{text-align:center;padding:10px 20px calc(36px + env(safe-area-inset-bottom,0px));color:var(--muted);font-size:14px}
+.more{background:none;border:0;color:var(--gold);font:inherit;font-weight:600;padding:4px 0 6px;cursor:pointer;text-decoration:underline;text-align:left}
+dialog{width:min(640px,calc(100% - 24px));margin:auto;border:1px solid var(--line);border-radius:20px;background:var(--bg);color:var(--ink);padding:16px}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+.dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.dh h3{margin:0;font-size:20px;color:var(--gold)}
+.x{background:none;border:0;color:var(--muted);font-size:30px;line-height:1;cursor:pointer}
+button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+<nav>
+  <a href="index.html" aria-label="Neshama home"><img class="logo" src="logo.png" alt="Neshama Leadership Institute" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="bname" style="display:none">Neshama Leadership Institute</span></a>
+  <span><a href="lessons.html">Student login</a> &nbsp;&nbsp; <a href="index.html?apply=1">Apply</a></span>
+</nav>
+
+<main class="w">
+  <h1>Meet your lecturers</h1>
+  <p>Our team of eight lecturers brings years of ministry and teaching experience to every class.</p>
+
+  <section style="padding-top:12px">
+    <div class="grid" id="lecturers"></div>
+  </section>
+
+  <section id="courses">
+    <h2>Our courses</h2>
+    <div class="card"><h3>Certificate</h3><p class="sub">[Short description, duration and entry requirement.]</p>
+      <ul><li>[Certificate course 1]</li><li>[Certificate course 2]</li><li>[Certificate course 3]</li><li>[Certificate course 4]</li></ul></div>
+    <div class="card"><h3>Diploma</h3><p class="sub">[Short description, duration and entry requirement.]</p>
+      <ul><li>[Diploma course 1]</li><li>[Diploma course 2]</li><li>[Diploma course 3]</li><li>[Diploma course 4]</li></ul></div>
+    <div class="card"><h3>Executive combo</h3><p class="sub">[Describe which courses are combined, who it is for, and the duration.]</p>
+      <ul><li>[Executive combo course 1]</li><li>[Executive combo course 2]</li><li>[Executive combo course 3]</li></ul></div>
+  </section>
+
+  <section>
+    <h2>See Neshama in action</h2>
+    <div class="yt"><iframe id="doc" title="Neshama Leadership Institute documentary" loading="lazy" allow="encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>
+    <a class="btn" href="index.html?apply=1">Apply here</a>
+  </section>
+</main>
+<footer>Neshama Leadership Institute</footer>
+
+<dialog id="vd" aria-labelledby="vt">
+  <div class="dh"><h3 id="vt"></h3><button class="x" id="vx" aria-label="Close">&times;</button></div>
+  <div class="yt"><iframe id="vf" title="Lecturer video" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+</dialog>
+
+<script>
+// ---- Edit these ----
+var DOCUMENTARY_ID='YOUR_DOCUMENTARY_VIDEO_ID'; // the part after v= in the YouTube link
+var LECTURERS=[
+  {name:'[Lecturer 1 name]',title:'[Title, e.g. Dean of Theology]',bio:'[One line about their background.]',photo:'images/lecturer-1.jpg',video:''},
+  {name:'[Lecturer 2 name]',title:'[Title]',bio:'[One line about their background.]',photo:'images/lecturer-2.jpg',video:''},
+  {name:'[Lecturer 3 name]',title:'[Title]',bio:'[One line about their background.]',photo:'images/lecturer-3.jpg',video:''},
+  {name:'[Lecturer 4 name]',title:'[Title]',bio:'[One line about their background.]',photo:'images/lecturer-4.jpg',video:''},
+  {name:'[Lecturer 5 name]',title:'[Title]',bio:'[One line about their background.]',photo:'images/lecturer-5.jpg',video:''},
+  {name:'[Lecturer 6 name]',title:'[Title]',bio:'[One line about their background.]',photo:'images/lecturer-6.jpg',video:''},
+  {name:'[Lecturer 7 name]',title:'[Title]',bio:'[One line about their background.]',photo:'images/lecturer-7.jpg',video:''},
+  {name:'[Lecturer 8 name]',title:'[Title]',bio:'[One line about their background.]',photo:'images/lecturer-8.jpg',video:''}
+];
+// For each lecturer, paste the Google Drive share link (or file ID) in video:'' . Leave empty for no Learn more link.
+// --------------------
+function el(t,txt){var e=document.createElement(t);if(txt)e.textContent=txt;return e}
+function driveId(v){var m=String(v).match(/\/d\/([\w-]+)/)||String(v).match(/[?&]id=([\w-]+)/);return m?m[1]:String(v).trim()}
+var vd=document.getElementById('vd'),vf=document.getElementById('vf');
+function playVideo(l){document.getElementById('vt').textContent=l.name;vf.src='https://drive.google.com/file/d/'+encodeURIComponent(driveId(l.video))+'/preview';vd.showModal()}
+vd.addEventListener('close',function(){vf.src='about:blank'});
+document.getElementById('vx').onclick=function(){vd.close()};
+vd.addEventListener('click',function(e){if(e.target===vd)vd.close()});
+var box=document.getElementById('lecturers');
+LECTURERS.forEach(function(l,i){
+  var c=el('div');c.className='lec';
+  var ph=el('div');ph.className='ph';
+  var img=document.createElement('img');img.src=l.photo;img.alt=l.name;img.loading='lazy';
+  img.onerror=function(){ph.textContent=String(i+1)};   // shows a number until the photo is uploaded
+  ph.appendChild(img);
+  var t=el('div');t.className='t';
+  t.appendChild(el('strong',l.name));
+  if(l.video){var m=el('button','Learn more ▶');m.type='button';m.className='more';m.onclick=function(){playVideo(l)};t.appendChild(m)}t.appendChild(el('small',l.title));t.appendChild(el('span',l.bio));
+  c.appendChild(ph);c.appendChild(t);box.appendChild(c);
+});
+if(DOCUMENTARY_ID.indexOf('YOUR_')!==0)document.getElementById('doc').src='https://www.youtube.com/embed/'+encodeURIComponent(DOCUMENTARY_ID)+'?rel=0&playsinline=1';
+</script>
+</body>
+</html>
