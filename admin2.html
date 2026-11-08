@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Neshama Staff</title>
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e1a2b;--card:#16263d;--ink:#f4efe4;--muted:#a9b6c8;--gold:#f2b84b;--line:#2b4162;--ok:#5ad19a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.5;padding:20px 16px calc(40px + env(safe-area-inset-bottom,0px))}
+.w{max-width:640px;margin:0 auto}
+h1{font-size:26px;margin:8px 0 14px}h2{font-size:20px;color:var(--gold);margin:28px 0 10px}
+.brand{text-align:center}.logo{max-height:64px;max-width:60%;width:auto}.bname{font-weight:800;color:var(--gold)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stats .card{text-align:center;margin:0}.stats b{display:block;font-size:26px;color:var(--gold)}
+small{color:var(--muted)}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:16px;margin-top:8px}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+button{padding:10px 16px;border:0;border-radius:99px;background:var(--gold);color:#14233a;font:800 15px inherit;cursor:pointer}
+.full{width:100%;margin-top:12px;padding:14px}
+.pill{font-size:13px;font-weight:600;padding:2px 10px;border-radius:99px;border:1px solid var(--line)}
+.ok{color:var(--ok)}.bad{color:#ff8a7a}.hid{display:none}
+#msg{position:sticky;top:8px;z-index:5;min-height:0;text-align:center;font-weight:600}
+</style>
+</head>
+<body>
+<div class="w">
+  <div class="brand"><img class="logo" src="logo.png" alt="Neshama logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="bname" style="display:none">Neshama Leadership Institute</span></div>
+  <h1>Staff admin</h1>
+  <div id="msg" role="status"></div>
+
+  <form class="card" id="login">
+    <label for="key">Staff key</label>
+    <input id="key" type="password" autocomplete="off">
+    <button class="full" type="submit">Sign in</button>
+  </form>
+
+  <div id="main" class="hid">
+    <div class="stats">
+      <div class="card"><b id="s1">0</b><small>Applicants</small></div>
+      <div class="card"><b id="s2">0</b><small>Confirmed</small></div>
+      <div class="card"><b id="s3">0</b><small>Unassigned</small></div>
+    </div>
+
+    <h2>Applications</h2>
+    <select id="filter" aria-label="Filter"><option value="">All</option><option>Pending</option><option>Confirmed</option></select>
+    <div id="apps" style="margin-top:10px"></div>
+
+    <h2>Students</h2>
+    <div id="studs"></div>
+
+    <h2 id="inqh">Inquiries</h2>
+    <div id="inq"></div>
+
+    <h2>Assessment access</h2>
+    <form class="card" id="fa">
+      <input id="an" placeholder="Client name" required>
+      <input id="ae" type="email" placeholder="Client email" required>
+      <input id="ap" type="tel" placeholder="WhatsApp number with country code (optional)">
+      <div id="aopts" style="margin-top:6px"></div>
+      <label style="display:block;margin-top:12px"><input type="checkbox" id="amail" checked style="width:auto;margin:0 8px 0 0">Email the code to the client</label>
+      <button class="full" type="submit">Create 24-hour code</button>
+    </form>
+    <div id="ares"></div>
+    <div id="alist"></div>
+
+    <h2>Academic records</h2>
+    <select id="rs" aria-label="Student"></select>
+    <div id="rsum" class="card hid" style="margin-top:10px"></div>
+    <button class="full hid" id="tbtn" type="button">Download transcript (PDF)</button>
+    <button class="full hid" id="dbtn" type="button">Full student details (core admin)</button>
+    <div id="dbox"></div>
+    <div id="rlist"></div>
+    <form class="card hid" id="fr">
+      <select id="rc" required aria-label="Course"></select>
+      <input id="rsco" type="number" min="0" max="100" step="0.1" placeholder="Score (0 to 100)" required>
+      <input id="rat" type="number" min="0" max="100" placeholder="Attendance (%)" required>
+      <input id="rt" placeholder="Term, e.g. 2026 Term 1" required>
+      <button class="full" type="submit">Save result</button>
+    </form>
+
+    <h2>Add a course</h2>
+    <form class="card" id="fc">
+      <input id="cc" placeholder="Course code, e.g. TH101" required>
+      <input id="ct" placeholder="Course title" required>
+      <select id="cl"><option>Certificate</option><option>Diploma</option><option>Executive combo</option></select>
+      <button class="full" type="submit">Add course</button>
+    </form>
+
+    <h2>Add a batch</h2>
+    <form class="card" id="fb">
+      <input id="bn" placeholder="Batch name, e.g. Batch B" required>
+      <input id="bc" placeholder="Batch code" required>
+      <input id="bd" type="date" required aria-label="Start date">
+      <input id="bw" placeholder="Batch WhatsApp group link (optional)">
+      <button class="full" type="submit">Add batch</button>
+    </form>
+
+    <h2>Schedule a live class</h2>
+    <form class="card" id="flv">
+      <select id="lb" aria-label="Batch"></select>
+      <input id="lti" placeholder="Class title" required>
+      <input id="lvid" placeholder="YouTube live link or video ID" required>
+      <label for="ls" style="margin-top:10px;display:block"><small>Starts (your local time)</small></label>
+      <input id="ls" type="datetime-local" required>
+      <label for="le" style="margin-top:10px;display:block"><small>Ends (optional)</small></label>
+      <input id="le" type="datetime-local">
+      <button class="full" type="submit">Schedule live class</button>
+    </form>
+
+    <h2>Add a lesson</h2>
+    <form class="card" id="fl">
+      <input id="ln" type="number" min="1" placeholder="Lesson number" required>
+      <input id="lt" placeholder="Title" required>
+      <input id="lv" placeholder="YouTube video ID" required>
+      <input id="lo" placeholder="Notes (optional)">
+      <input id="lq" placeholder="Google Form quiz link (optional)">
+      <button class="full" type="submit">Add lesson</button>
+    </form>
+    <button id="out" style="background:none;color:var(--muted);text-decoration:underline;display:block;margin:20px auto">Sign out</button>
+  </div>
+</div>
+
+<script>
+var SCRIPT_URL='PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+var key='',data=null,$=function(i){return document.getElementById(i)};
+function el(t,txt,c){var e=document.createElement(t);if(txt!=null)e.textContent=txt;if(c)e.className=c;return e}
+function say(t,bad){var m=$('msg');m.textContent=t;m.style.color=bad?'#ff8a7a':'var(--ok)';setTimeout(function(){if(m.textContent===t)m.textContent=''},4000)}
+function call(a,x){var p=Object.assign({action:a,key:key},x||{});
+  return fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).then(function(r){return r.json()})}
+
+function load(){return call('list').then(function(r){
+  if(!r.ok){say(r.error||'Could not load.',true);key='';return false}
+  data=r;$('login').classList.add('hid');$('main').classList.remove('hid');render();fillRs();fillLiveBatches();loadInq();loadAccess();return true
+}).catch(function(){say('Connection problem.',true)})}
+
+function render(){
+  var c=data.apps.filter(function(a){return a.status==='Confirmed'}).length;
+  $('s1').textContent=data.apps.length;$('s2').textContent=c;
+  $('s3').textContent=data.students.filter(function(s){return s.batch==='Unassigned'}).length;
+  var f=$('filter').value,A=$('apps');A.textContent='';
+  data.apps.filter(function(a){return !f||a.status===f}).reverse().forEach(function(a){
+    var d=el('div',null,'card'),r=el('div',null,'row'),l=el('div');
+    l.appendChild(el('strong',a.name));l.appendChild(el('br'));
+    l.appendChild(el('small',a.email+' · '+a.phone));l.appendChild(el('br'));
+    l.appendChild(el('small',a.program+' · '+a.when));
+    var s=el('span',a.status,'pill'+(a.status==='Confirmed'?' ok':''));
+    r.appendChild(l);r.appendChild(s);d.appendChild(r);
+    if(a.status==='Pending'){var b=el('button','Resend confirmation');b.style.marginTop='10px';
+      b.onclick=function(){b.disabled=true;call('resend',{email:a.email}).then(function(x){say(x.ok?'Confirmation resent.':x.error,!x.ok);b.disabled=false})};d.appendChild(b)}
+    A.appendChild(d)});
+  var S=$('studs');S.textContent='';
+  data.students.forEach(function(s){
+    var d=el('div',null,'card'),sel=document.createElement('select');
+    d.appendChild(el('strong',s.email+(s.id?' · '+s.id:'')));
+    ['Unassigned'].concat(data.batches.map(function(b){return b.batch})).forEach(function(n){
+      var o=el('option',n);if(n===s.batch)o.selected=true;sel.appendChild(o)});
+    sel.onchange=function(){call('setBatch',{email:s.email,batch:sel.value}).then(function(x){say(x.ok?'Batch updated.':x.error,!x.ok);if(x.ok){s.batch=sel.value;render()}})};
+    d.appendChild(sel);S.appendChild(d)})
+}
+$('filter').onchange=render;
+$('login').onsubmit=function(e){e.preventDefault();key=$('key').value.trim();$('key').value='';load()};
+$('out').onclick=function(){key='';data=null;$('main').classList.add('hid');$('login').classList.remove('hid')};
+$('fb').onsubmit=function(e){e.preventDefault();
+  call('addBatch',{batch:$('bn').value.trim(),code:$('bc').value.trim(),start:$('bd').value,wa:$('bw').value.trim()}).then(function(x){say(x.ok?'Batch added.':x.error,!x.ok);if(x.ok){$('fb').reset();load()}})};
+$('fl').onsubmit=function(e){e.preventDefault();
+  call('addLesson',{lesson:$('ln').value,title:$('lt').value.trim(),videoId:$('lv').value.trim(),notes:$('lo').value.trim(),quiz:$('lq').value.trim()}).then(function(x){say(x.ok?'Lesson added.':x.error,!x.ok);if(x.ok)$('fl').reset()})};
+
+function fillRs(){var s=$('rs'),v=s.value;s.textContent='';var o=el('option','Choose a student');o.value='';s.appendChild(o);
+  data.students.forEach(function(x){var q=el('option',x.email);q.value=x.email;s.appendChild(q)});s.value=v}
+function loadRec(){var e=$('rs').value;$('rlist').textContent='';$('rsum').classList.add('hid');$('fr').classList.add('hid');$('tbtn').classList.add('hid');$('dbtn').classList.add('hid');$('dbox').textContent='';if(!e)return;
+  call('records',{email:e}).then(function(r){if(!r.ok){say(r.error||'Could not load.',true);return}
+    var m=r.summary;$('rsum').textContent='Average '+m.average+' · Passed '+m.passed+' of '+m.courses+' · Attendance '+m.attendance+'%';$('rsum').classList.remove('hid');
+    r.records.forEach(function(x){var d=el('div',null,'card'),row=el('div',null,'row');
+      row.appendChild(el('strong',x.title+' ('+x.term+')'));
+      row.appendChild(el('span',x.score+' · '+x.grade+' · '+(x.pass?'Pass':'Fail')+' · '+x.attendance+'% attendance','pill '+(x.pass?'ok':'bad')));
+      d.appendChild(row);
+      if(data.core){var del=el('button','Delete result');del.style.marginTop='10px';
+        del.onclick=function(){if(confirm('Delete this result? This is logged.'))call('deleteRecord',{email:e,course:x.course,term:x.term}).then(function(z){say(z.ok?'Result deleted.':z.error,!z.ok);if(z.ok)loadRec()})};
+        d.appendChild(del)}
+      $('rlist').appendChild(d)});
+    var c=$('rc');c.textContent='';r.courses.forEach(function(k){var o=el('option',k.title+' ('+k.level+')');o.value=k.code;c.appendChild(o)});
+    $('fr').classList.remove('hid');$('tbtn').classList.remove('hid');if(data.core)$('dbtn').classList.remove('hid')}).catch(function(){say('Connection problem.',true)})}
+$('rs').onchange=loadRec;
+$('tbtn').onclick=function(){var b=$('tbtn');b.disabled=true;b.textContent='Preparing…';
+  call('transcript',{email:$('rs').value}).then(function(x){if(x.ok)savePdf(x);else say(x.error,true)})
+  .catch(function(){say('Connection problem.',true)}).then(function(){b.disabled=false;b.textContent='Download transcript (PDF)'})};
+$('fr').onsubmit=function(e){e.preventDefault();
+  call('saveRecord',{email:$('rs').value,course:$('rc').value,score:$('rsco').value,attendance:$('rat').value,term:$('rt').value.trim()})
+  .then(function(x){say(x.ok?'Result saved.':x.error,!x.ok);if(x.ok){$('rsco').value='';$('rat').value='';loadRec()}})};
+$('fc').onsubmit=function(e){e.preventDefault();
+  call('addCourse',{code:$('cc').value.trim(),title:$('ct').value.trim(),level:$('cl').value})
+  .then(function(x){say(x.ok?'Course added.':x.error,!x.ok);if(x.ok){$('fc').reset();loadRec()}})};
+
+$('dbtn').onclick=function(){var em=$('rs').value;
+  call('details',{email:em}).then(function(r){var b=$('dbox');b.textContent='';
+    if(!r.ok){say(r.error,true);return}
+    Object.keys(r.fields).forEach(function(k){var row=el('div',null,'row card');
+      var l=el('div');l.appendChild(el('small',k));l.appendChild(el('br'));l.appendChild(el('span',String(r.fields[k])));row.appendChild(l);
+      if(!/^(Timestamp|ID|Status|email)$/.test(k)){var ed=el('button','Edit');
+        ed.onclick=function(){var nv=prompt('New value for '+k,r.fields[k]);
+          if(nv!==null)call('editApplicant',{email:em,field:k,value:nv}).then(function(z){say(z.ok?'Updated.':z.error,!z.ok);if(z.ok)$('dbtn').onclick()})};
+        row.appendChild(ed)}
+      b.appendChild(row)})})};
+
+function ytId(v){v=String(v).trim();var m=v.match(/[?&]v=([\w-]{11})/)||v.match(/youtu\.be\/([\w-]{11})/)||v.match(/\/(?:live|embed)\/([\w-]{11})/);return m?m[1]:v}
+function fillLiveBatches(){var s=$('lb'),v=s.value;s.textContent='';
+  ['All'].concat(data.batches.map(function(b){return b.batch})).forEach(function(n){s.appendChild(el('option',n))});if(v)s.value=v}
+$('flv').onsubmit=function(e){e.preventDefault();
+  var st=$('ls').value,en=$('le').value;
+  call('addLive',{batch:$('lb').value,title:$('lti').value.trim(),videoId:ytId($('lvid').value),start:new Date(st).toISOString(),end:en?new Date(en).toISOString():''})
+  .then(function(x){say(x.ok?'Live class scheduled.':x.error,!x.ok);if(x.ok)$('flv').reset()})};
+
+function loadInq(){call('inquiries').then(function(r){
+  var b=$('inq');b.textContent='';if(!r.ok)return;
+  var n=r.items.filter(function(x){return x.status==='New'}).length;
+  $('inqh').textContent='Inquiries'+(n?' ('+n+' new)':'');
+  if(!r.items.length)b.appendChild(el('small','No inquiries yet.'));
+  r.items.forEach(function(x){
+    var d=el('div',null,'card'),row=el('div',null,'row'),l=el('div');
+    l.appendChild(el('strong',x.name));l.appendChild(el('br'));
+    l.appendChild(el('small',x.email+(x.phone?' · '+x.phone:'')+' · '+x.when));
+    row.appendChild(l);row.appendChild(el('span',x.status,'pill '+(x.status==='New'?'bad':'ok')));d.appendChild(row);
+    var p=el('p',x.message);p.style.cssText='margin:10px 0;color:var(--ink);white-space:pre-wrap';d.appendChild(p);
+    var m=el('a','Reply by email');m.href='mailto:'+encodeURIComponent(x.email)+'?subject='+encodeURIComponent('Re: your question to Neshama');
+    m.style.cssText='color:var(--gold);margin-right:16px';d.appendChild(m);
+    if(x.status==='New'){var k=el('button','Mark answered');
+      k.onclick=function(){call('markInquiry',{row:x.row,status:'Answered'}).then(function(z){say(z.ok?'Marked answered.':z.error,!z.ok);if(z.ok)loadInq()})};
+      d.appendChild(k)}
+    b.appendChild(d)})}).catch(function(){})}
+
+var ASSESS=[['disc','DISC Leadership Profile'],['eq','Emotional Intelligence'],['strengths','Strengths Compass'],['johari','Johari Window']];
+function buildOpts(){var o=$('aopts');o.textContent='';ASSESS.forEach(function(x){
+  var l=el('label');l.style.cssText='display:block;margin-top:8px';
+  var c=document.createElement('input');c.type='checkbox';c.value=x[0];c.checked=true;c.style.cssText='width:auto;margin:0 8px 0 0';
+  l.appendChild(c);l.appendChild(document.createTextNode(x[1]));o.appendChild(l)})}
+buildOpts();
+function fmtDT(iso){return new Date(iso).toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}
+function showCode(r){
+  var b=$('ares');b.textContent='';var d=el('div',null,'card');
+  d.appendChild(el('small','Code for '+r.name+' (shown once, so send it now)'));
+  var c=el('div',r.code);c.style.cssText='font-size:28px;font-weight:800;letter-spacing:.06em;color:var(--gold);margin:6px 0';d.appendChild(c);
+  d.appendChild(el('small','Valid until '+fmtDT(r.expires)+(r.emailed?' · emailed to the client':'')));
+  var msg='Hello '+r.name+', your Neshama Leadership Institute assessment access code is '+r.code+'. It is valid for 24 hours (until '+fmtDT(r.expires)+'). Open '+r.url+' and enter the code.';
+  var row=el('div',null,'row');row.style.marginTop='12px';
+  var digits=(r.phone||'').replace(/\D/g,'');
+  if(digits){var w=el('a','Send on WhatsApp');w.href='https://wa.me/'+digits+'?text='+encodeURIComponent(msg);w.target='_blank';w.rel='noopener';
+    w.style.cssText='background:var(--gold);color:#14233a;font-weight:800;padding:10px 16px;border-radius:99px;text-decoration:none';row.appendChild(w)}
+  var cp=el('button','Copy message');cp.onclick=function(){try{navigator.clipboard.writeText(msg).then(function(){say('Message copied.')})}catch(e){say('Could not copy.',true)}};
+  row.appendChild(cp);d.appendChild(row);b.appendChild(d)}
+$('fa').onsubmit=function(e){e.preventDefault();
+  var allowed=[].slice.call($('aopts').querySelectorAll('input:checked')).map(function(c){return c.value});
+  if(!allowed.length){say('Choose at least one assessment.',true);return}
+  call('createAccess',{name:$('an').value.trim(),clientEmail:$('ae').value.trim(),phone:$('ap').value.trim(),allowed:allowed,sendMail:$('amail').checked})
+  .then(function(r){if(!r.ok){say(r.error,true);return}showCode(r);$('fa').reset();buildOpts();loadAccess()})
+  .catch(function(){say('Connection problem.',true)})};
+function loadAccess(){call('listAccess').then(function(r){
+  var b=$('alist');b.textContent='';if(!r.ok)return;
+  r.items.forEach(function(x){var d=el('div',null,'card'),row=el('div',null,'row'),l=el('div');
+    l.appendChild(el('strong',x.name));l.appendChild(el('br'));
+    l.appendChild(el('small',x.email+' · '+x.allowed+' · until '+fmtDT(x.expires)));
+    row.appendChild(l);row.appendChild(el('span',x.status,'pill '+(x.status==='Active'?'ok':'bad')));d.appendChild(row);
+    if(x.status==='Active'){var k=el('button','Switch off');k.style.marginTop='10px';
+      k.onclick=function(){if(confirm('Switch off this code now?'))call('revokeAccess',{row:x.row}).then(function(z){say(z.ok?'Code switched off.':z.error,!z.ok);if(z.ok)loadAccess()})};d.appendChild(k)}
+    b.appendChild(d)})}).catch(function(){})}
+function savePdf(r){var b=atob(r.data),u=new Uint8Array(b.length);for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);
+  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([u],{type:'application/pdf'}));a.download=r.filename;
+  document.body.appendChild(a);a.click();a.remove()}
+</script>
+</body>
+</html>
