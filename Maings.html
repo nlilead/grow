@@ -1,0 +1,15 @@
+/**
+ * Main.gs: the single front door for the whole project.
+ * Requests that carry "fn" are the leadership assessments (DISC, EQ, Strengths, Johari).
+ * Everything else is the school site (students, staff, applications, inquiries).
+ */
+function doPost(e) {
+  var body = {};
+  try { body = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { /* leave empty */ }
+  if (body.fn) return assessRoute_(body);
+  return schoolPost_(e);
+}
+
+function doGet(e) {
+  return schoolGet_(e);
+}
