@@ -81,7 +81,7 @@ input:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);o
 </div>
 
 <script>
-var SCRIPT_URL='PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+var SCRIPT_URL='https://script.google.com/macros/s/AKfycbxq2Nj6UZu2Nm3CKtShGM5Ipz6tWEX6RE3zT21g05pbn5-WfDUSOD8vGWbBNYRxa0Co/exec';
 var liveTimer=null,liveId='';
 var tok=null,$=function(i){return document.getElementById(i)};
 function api(p){return fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).then(function(r){return r.json()})}
