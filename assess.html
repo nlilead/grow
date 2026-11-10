@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Neshama assessments</title>
+<title>Neshamah assessments</title>
 <link rel="icon" href="logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -29,7 +29,7 @@ input:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);o
 </head>
 <body>
 <div class="w">
-  <div class="brand"><img class="logo" src="logo.png" alt="Neshama Leadership Institute" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="bname" style="display:none">Neshama Leadership Institute</span></div>
+  <div class="brand"><img class="logo" src="logo.png" alt="Neshamah Leadership Institute" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="bname" style="display:none">Neshamah Leadership Institute</span></div>
   <h1>Leadership assessments</h1>
 
   <form class="card" id="f" novalidate>
@@ -49,13 +49,14 @@ input:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--gold);o
 </div>
 
 <script>
-var SCRIPT_URL='https://script.google.com/macros/s/AKfycbxq2Nj6UZu2Nm3CKtShGM5Ipz6tWEX6RE3zT21g05pbn5-WfDUSOD8vGWbBNYRxa0Co/exec';
+var SCRIPT_URL='PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
 var $=function(i){return document.getElementById(i)};
 var KINDS={
   disc:{t:'DISC Leadership Profile',u:'disc.html',d:'Discover your natural leadership and communication style.'},
   eq:{t:'Emotional Intelligence',u:'eq.html',d:'See how you read and manage emotions in yourself and others.'},
   strengths:{t:'Strengths Compass',u:'strengths.html',d:'Find the strengths that guide how you lead.'},
-  johari:{t:'Johari Window',u:'johari.html',d:'Compare how you see yourself with how colleagues see you.'}
+  johari:{t:'Johari Window',u:'johari.html',d:'Compare how you see yourself with how colleagues see you.'},
+  blackout:{t:'Blackout Index',u:'blackout.html',d:'Test how your team would perform if you were unavailable for 48 hours.'}
 };
 function show(m){
   $('f').classList.add('hid');$('list').classList.remove('hid');

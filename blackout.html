@@ -1,140 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>Blackout Index</title>
+<link rel="icon" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
-  body{font-family:Arial,sans-serif;max-width:640px;margin:0 auto;padding:16px;color:#222}
-  h1{margin-bottom:4px} .sub{color:#666;font-size:14px;margin-bottom:16px}
-  h3{margin:24px 0 0;color:#1a5fb4}
-  label.f{display:block;font-weight:bold;margin:12px 0 4px}
-  input[type=text],select,textarea{width:100%;padding:8px;font-size:16px;box-sizing:border-box}
-  .q{margin:12px 0;padding:12px;border:1px solid #ddd;border-radius:8px}
-  .q p{margin:0 0 8px}
-  .scale{display:flex;justify-content:space-between;gap:4px}
-  .scale label{flex:1;text-align:center;font-size:14px;padding:6px 0;border:1px solid #ccc;border-radius:6px;cursor:pointer}
-  .scale input{display:block;margin:0 auto 2px}
-  .hint{font-size:12px;color:#777;margin-top:4px}
-  button{width:100%;padding:12px;font-size:16px;background:#1a5fb4;color:#fff;border:0;border-radius:8px;margin-top:16px;cursor:pointer}
-  button:disabled{background:#999}
-  #msg{margin-top:12px;font-weight:bold}
+:root{--bg:#0e1a2b;--card:#16263d;--ink:#f4efe4;--muted:#a9b6c8;--gold:#f2b84b;--line:#2b4162;--ok:#5ad19a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;line-height:1.55;padding:24px 20px calc(40px + env(safe-area-inset-bottom,0px))}
+.w{max-width:600px;margin:0 auto}
+.brand{text-align:center;margin-bottom:10px}.logo{max-height:80px;max-width:70%;width:auto}.bname{font-weight:800;font-size:22px;color:var(--gold)}
+h1{font-size:28px;line-height:1.15;font-weight:800;margin:14px 0 10px}
+p{color:var(--muted);font-size:17px;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:14px}
+.q{font-weight:600;font-size:17px;margin:0 0 12px;color:var(--ink)}
+fieldset{border:0;padding:0;margin:0}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.scale label{position:relative;text-align:center}
+.scale input{position:absolute;opacity:0;inset:0;width:100%;height:100%;cursor:pointer;margin:0}
+.scale span{display:block;padding:12px 0;border:1px solid var(--line);border-radius:12px;font-weight:700;background:var(--bg)}
+.scale input:checked+span{background:var(--gold);color:#14233a;border-color:var(--gold)}
+.scale input:focus-visible+span{outline:3px solid var(--gold);outline-offset:2px}
+.hint{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-top:6px}
+input[type=text]{width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:16px}
+label.f{display:block;font-weight:600;margin:0 0 6px;font-size:15px}
+.btn{display:block;width:100%;margin-top:16px;padding:16px;border:0;border-radius:99px;background:var(--gold);color:#14233a;font:800 17px inherit;text-align:center;text-decoration:none;cursor:pointer}
+.btn:disabled{opacity:.6}
+.btn.alt{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.err{color:#ff8a7a;font-size:14px;min-height:18px;margin-top:10px}
+.link{word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--ink);font-size:15px}
+.hid{display:none}
 </style>
 </head>
 <body>
-<h1>Blackout Index</h1>
-<div class="sub">
-  Imagine the leader is unavailable for 48 hours. Rate how true each statement is.<br>
-  If you are the leader rating yourself, choose "Self" and read "the leader" as "me".
+<div class="w">
+  <div class="brand"><img class="logo" src="logo.png" alt="Neshamah Leadership Institute" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><span class="bname" style="display:none">Neshamah Leadership Institute</span></div>
+  <h1>Blackout Index</h1>
+  <p>Imagine the leader is unavailable for 48 hours. Rate how true each statement is, from 1 (not true at all) to 5 (completely true).</p>
+
+  <!-- Leader view: needs an access code -->
+  <div id="leaderView" class="hid">
+    <p id="who" style="color:var(--gold);font-weight:600"></p>
+    <p style="font-size:15px">You are rating your own team. Read “the leader” as “me”.</p>
+    <form id="f1" novalidate><div id="qs1"></div><div class="err" id="err1" role="alert"></div>
+      <button class="btn" id="go1" type="submit">Submit my self-assessment</button></form>
+    <div id="done1" class="hid">
+      <div class="card">
+        <h2 style="margin:0 0 6px;font-size:22px;color:var(--gold)">Your self-assessment is saved</h2>
+        <p id="score1" style="margin-bottom:10px"></p>
+        <p style="font-size:15px">Now send this link to <b>three</b> team members. Each person answers once. When the third response arrives, the full PDF report is emailed to you.</p>
+        <div class="link" id="share"></div>
+        <button class="btn" id="copy" type="button">Copy link</button>
+        <a class="btn alt" id="wa" target="_blank" rel="noopener">Share on WhatsApp</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Team view: private link from the leader -->
+  <div id="teamView" class="hid">
+    <p id="tname" style="color:var(--gold);font-weight:600"></p>
+    <form id="f2" novalidate>
+      <div class="card"><label class="f" for="rater">Your name (optional)</label><input type="text" id="rater" maxlength="80" autocomplete="name"></div>
+      <div id="qs2"></div><div class="err" id="err2" role="alert"></div>
+      <button class="btn" id="go2" type="submit">Submit</button>
+    </form>
+    <div id="done2" class="hid card"><h2 style="margin:0 0 6px;font-size:22px;color:var(--gold)">Thank you</h2><p id="msg2" style="margin:0"></p></div>
+  </div>
+
+  <div id="bad" class="hid card"><p id="badtxt" style="margin:0"></p></div>
 </div>
 
-<label class="f">Leader being rated</label>
-<input type="text" id="leader">
-<label class="f">I am rating as</label>
-<select id="type">
-  <option value="Team">Team member</option>
-  <option value="Self">Self (the leader)</option>
-</select>
-<label class="f">Your name (optional)</label>
-<input type="text" id="name">
-
-<div id="qs"></div>
-
-<label class="f">What is one decision the team would hesitate to make without the leader? (optional)</label>
-<textarea id="comment" rows="3"></textarea>
-
-<button id="btn" onclick="send()">Submit</button>
-<div id="msg"></div>
-
 <script>
-  // 1) Paste your Apps Script web app URL here (ends in /exec)
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxq2Nj6UZu2Nm3CKtShGM5Ipz6tWEX6RE3zT21g05pbn5-WfDUSOD8vGWbBNYRxa0Co/exec';
+var SCRIPT_URL='PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+// Must match the STATEMENTS in the backend (same order and wording).
+var STATEMENTS=[
+ 'Urgent decisions would get made without waiting to reach the leader.',
+ 'Everyone knows which decisions they can make without asking the leader.',
+ 'Important processes are documented, so nobody needs to ask the leader how things are done.',
+ 'Key clients and partners have a trusted contact besides the leader.',
+ 'Someone is clearly named to stand in for the leader.',
+ 'Team members feel confident acting without checking with the leader first.',
+ 'If something went wrong, the team would fix it rather than wait for the leader.',
+ 'People understand the reasons behind decisions, not just the instructions.',
+ 'Spending and approvals could go ahead without the leader being reachable.',
+ 'The team would stay calm and focused, not anxious, if the leader were unreachable.',
+ 'Priorities are clear enough that everyone would know what matters most without hearing from the leader.',
+ 'The team would handle a sensitive or unexpected situation without needing to contact the leader.'
+];
+var $=function(i){return document.getElementById(i)};
+function show(id){['leaderView','teamView','bad'].forEach(function(x){$(x).classList.toggle('hid',x!==id)})}
+function post(p){return fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)}).then(function(r){return r.json()})}
+function build(into,prefix){
+  var c=$(into);c.textContent='';
+  STATEMENTS.forEach(function(t,i){
+    var card=document.createElement('div');card.className='card';
+    var fs=document.createElement('fieldset');var lg=document.createElement('legend');lg.className='q';lg.textContent=(i+1)+'. '+t;fs.appendChild(lg);
+    var sc=document.createElement('div');sc.className='scale';
+    for(var n=1;n<=5;n++){var l=document.createElement('label');var r=document.createElement('input');r.type='radio';r.name=prefix+i;r.value=n;
+      var s=document.createElement('span');s.textContent=n;l.appendChild(r);l.appendChild(s);sc.appendChild(l)}
+    fs.appendChild(sc);var h=document.createElement('div');h.className='hint';h.innerHTML='<span>Not true</span><span>Completely true</span>';fs.appendChild(h);
+    card.appendChild(fs);c.appendChild(card)});
+}
+function read(prefix,errId){
+  var a=[];
+  for(var i=0;i<STATEMENTS.length;i++){var c=document.querySelector('input[name="'+prefix+i+'"]:checked');
+    if(!c){$(errId).textContent='Please answer statement '+(i+1)+'.';return null}a.push(Number(c.value))}
+  $(errId).textContent='';return a;
+}
 
-  const PARTS = [
-    { title: 'Part 1: Wait or Move', questions: [
-      'When the leader is unavailable, the team still makes good decisions.',
-      'People know which decisions they can make without approval.',
-      'Urgent client issues get resolved without waiting for the leader.',
-      'The team uses agreed principles when there is no clear answer.',
-      'Work does not stall when the leader is away.'
-    ]},
-    { title: 'Part 2: Escalate or Solve', questions: [
-      'When two people disagree, they resolve it themselves first.',
-      'People challenge each other\'s ideas openly and respectfully.',
-      'Escalation is a last resort, not a habit.',
-      'Managers coach their own people rather than sending problems upward.',
-      'Disagreements end in a clear decision, not a postponement.'
-    ]},
-    { title: 'Part 3: Protect or Respond', questions: [
-      'When a decision goes wrong, the team asks "what did we learn?" before "whose fault?"',
-      'People admit mistakes early.',
-      'Nobody avoids decisions out of fear of blame.',
-      'The team adapts quickly after a setback.',
-      'People take ownership of results, good or bad.'
-    ]}
-  ];
-
-  const ALL = [];
-  PARTS.forEach(function (p) { p.questions.forEach(function (q) { ALL.push(q); }); });
-
-  // Pre-fill leader from ?leader=Name
-  const params = new URLSearchParams(location.search);
-  if (params.get('leader')) document.getElementById('leader').value = params.get('leader');
-
-  // Build the questions
-  const wrap = document.getElementById('qs');
-  let idx = 0;
-  PARTS.forEach(function (part) {
-    wrap.insertAdjacentHTML('beforeend', '<h3>' + part.title + '</h3>');
-    part.questions.forEach(function (q) {
-      let opts = '';
-      for (let n = 1; n <= 5; n++) {
-        opts += '<label><input type="radio" name="q' + idx + '" value="' + n + '">' + n + '</label>';
-      }
-      wrap.insertAdjacentHTML('beforeend',
-        '<div class="q"><p>' + (idx + 1) + '. ' + q.replace(/"/g, '&quot;') + '</p>' +
-        '<div class="scale">' + opts + '</div>' +
-        '<div class="hint">1 = Never &nbsp;&middot;&nbsp; 5 = Always</div></div>');
-      idx++;
-    });
-  });
-
-  async function send() {
-    const msg = document.getElementById('msg');
-    const btn = document.getElementById('btn');
-    const leader = document.getElementById('leader').value.trim();
-    if (!leader) { msg.textContent = 'Please enter the leader\'s name.'; return; }
-
-    const answers = [];
-    for (let i = 0; i < ALL.length; i++) {
-      const c = document.querySelector('input[name="q' + i + '"]:checked');
-      if (!c) { msg.textContent = 'Please answer question ' + (i + 1) + '.'; return; }
-      answers.push(Number(c.value));
-    }
-
-    btn.disabled = true;
-    msg.textContent = 'Submitting...';
-    try {
-      // Sent as text/plain so the browser skips the CORS preflight that Apps Script cannot answer
-      const res = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          leader: leader,
-          type: document.getElementById('type').value,
-          name: document.getElementById('name').value,
-          comment: document.getElementById('comment').value,
-          answers: answers
-        })
-      });
-      const out = await res.json();
-      if (out.status !== 'ok') throw new Error(out.message || 'Server error');
-      msg.textContent = 'Thank you. Your response was recorded.';
-    } catch (err) {
-      msg.textContent = 'Something went wrong: ' + err.message;
-      btn.disabled = false;
-    }
+var id=new URLSearchParams(location.search).get('id');
+if(id){ // ---- team member ----
+  build('qs2','t');
+  fetch(SCRIPT_URL+'?action=getLeader&id='+encodeURIComponent(id)).then(function(r){return r.json()}).then(function(r){
+    if(!r.ok){$('badtxt').textContent='This link is not valid. Please ask the leader for a new one.';show('bad');return}
+    if(r.count>=r.needed){$('badtxt').textContent='This assessment already has all '+r.needed+' responses. Thank you!';show('bad');return}
+    $('tname').textContent='You are rating the team of '+r.name+'.';show('teamView');
+  }).catch(function(){$('badtxt').textContent='Connection problem. Please refresh.';show('bad')});
+  $('f2').addEventListener('submit',function(e){e.preventDefault();
+    var a=read('t','err2');if(!a)return;var b=$('go2');b.disabled=true;b.textContent='Submitting…';
+    post({action:'submitTeam',leaderId:id,raterName:$('rater').value.trim(),answers:a}).then(function(r){
+      if(!r.ok){$('err2').textContent=r.error||'Could not submit.';b.disabled=false;b.textContent='Submit';return}
+      $('f2').classList.add('hid');$('msg2').textContent='Your response was recorded ('+r.count+' of '+r.needed+'). You can close this page.';$('done2').classList.remove('hid');
+    }).catch(function(){$('err2').textContent='Connection problem. Please try again.';b.disabled=false;b.textContent='Submit'})});
+}else{ // ---- leader (needs an access code) ----
+  var token=null,meta=null;try{token=sessionStorage.getItem('nli_access');meta=JSON.parse(sessionStorage.getItem('nli_meta')||'null')}catch(e){}
+  if(!token||!meta||new Date(meta.expires)<=new Date()){location.href='assess.html'}
+  else{
+    build('qs1','s');$('who').textContent='Rating as '+meta.name;show('leaderView');
+    $('f1').addEventListener('submit',function(e){e.preventDefault();
+      var a=read('s','err1');if(!a)return;var b=$('go1');b.disabled=true;b.textContent='Submitting…';
+      post({action:'submitSelf',token:token,answers:a,baseUrl:location.origin+location.pathname}).then(function(r){
+        if(r.access){try{sessionStorage.removeItem('nli_access')}catch(x){}location.href='assess.html';return}
+        if(!r.ok){$('err1').textContent=r.error||'Could not submit.';b.disabled=false;b.textContent='Submit my self-assessment';return}
+        var link=location.origin+location.pathname+'?id='+r.leaderId;
+        $('f1').classList.add('hid');$('score1').textContent='Your self-score: '+r.pct+'%';$('share').textContent=link;
+        $('wa').href='https://wa.me/?text='+encodeURIComponent('Please take 3 minutes to answer the Blackout Index for our team. Each person answers once: '+link);
+        $('copy').onclick=function(){try{navigator.clipboard.writeText(link).then(function(){$('copy').textContent='Copied'})}catch(x){}};
+        $('done1').classList.remove('hid');window.scrollTo(0,0);
+      }).catch(function(){$('err1').textContent='Connection problem. Please try again.';b.disabled=false;b.textContent='Submit my self-assessment'})});
   }
+}
 </script>
 </body>
 </html>
