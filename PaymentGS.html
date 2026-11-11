@@ -1,0 +1,147 @@
+/**
+ * Payment.gs: Paystack registration fee.
+ * Applicant applies -> pays on Paystack -> script verifies the payment -> student ID is issued.
+ * Script properties needed: PAYSTACK_SECRET (sk_test_... first, later sk_live_...)
+ * Applications tab gets two extra columns automatically: PayRef, PaidAt.
+ */
+
+// ---------- SETTINGS ----------
+var REG_FEE_NGN = 5000;                                   // registration fee in Naira (0 = no payment step)
+var PAY_RETURN_URL = 'https://yourdomain.com/index.html'; // where Paystack sends the applicant back
+// -------------------------------
+
+function paystackSecret_() {
+  return PropertiesService.getScriptProperties().getProperty('PAYSTACK_SECRET') || '';
+}
+
+// Finds a column by header name, adding it at the end if it does not exist yet
+function payCol_(sh, name) {
+  var last = sh.getLastColumn(), head = sh.getRange(1, 1, 1, last).getValues()[0], i = head.indexOf(name);
+  if (i >= 0) return i + 1;
+  sh.getRange(1, last + 1).setValue(name);
+  return last + 1;
+}
+
+// Creates a Paystack payment for this application row and returns the checkout address
+function startPayment_(sh, row, email) {
+  var secret = paystackSecret_();
+  if (!secret) return {ok: false, error: 'Online payment is not set up yet. Please contact the school.'};
+  var ref = 'NLI-' + Utilities.getUuid();
+  var res = UrlFetchApp.fetch('https://api.paystack.co/transaction/initialize', {
+    method: 'post', contentType: 'application/json', muteHttpExceptions: true,
+    headers: {Authorization: 'Bearer ' + secret},
+    payload: JSON.stringify({email: email, amount: Math.round(REG_FEE_NGN * 100), currency: 'NGN',
+      reference: ref, callback_url: PAY_RETURN_URL})
+  });
+  var j = {};
+  try { j = JSON.parse(res.getContentText() || '{}'); } catch (err) { /* leave empty */ }
+  if (!j.status || !j.data || !j.data.authorization_url)
+    return {ok: false, error: 'Could not start the payment. Please try again in a moment.'};
+  sh.getRange(row, payCol_(sh, 'PayRef')).setValue(ref);
+  return {ok: true, payUrl: j.data.authorization_url};
+}
+
+// Asks Paystack whether this reference was really paid, then issues the student ID (once)
+function verifyAndFinalize_(reference) {
+  var secret = paystackSecret_();
+  if (!secret) return {ok: false, error: 'Online payment is not set up yet.'};
+  if (!/^[A-Za-z0-9\-_.=]{5,80}$/.test(String(reference || ''))) return {ok: false, error: 'Invalid payment reference.'};
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName('Applications');
+  var hit = sh ? sh.createTextFinder(reference).matchEntireCell(true).findNext() : null;
+  if (!hit) return {ok: false, error: 'We could not find that payment. Please contact the school.'};
+  var row = hit.getRow(), head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  var vals = sh.getRange(row, 1, 1, head.length).getValues()[0];
+  var email = String(vals[head.indexOf('email')]).trim().toLowerCase(), name = vals[head.indexOf('name')];
+  if (vals[2] === 'Confirmed') return {ok: true, already: true, name: name};
+
+  var res = UrlFetchApp.fetch('https://api.paystack.co/transaction/verify/' + encodeURIComponent(reference),
+    {headers: {Authorization: 'Bearer ' + secret}, muteHttpExceptions: true});
+  var j = {};
+  try { j = JSON.parse(res.getContentText() || '{}'); } catch (err) { /* leave empty */ }
+  var t = j.data || {};
+  if (!j.status || t.status !== 'success')
+    return {ok: false, pending: true, error: 'We have not received a successful payment yet.'};
+  if (Number(t.amount) !== Math.round(REG_FEE_NGN * 100) || t.currency !== 'NGN' ||
+      String((t.customer && t.customer.email) || '').trim().toLowerCase() !== email)
+    return {ok: false, error: 'This payment does not match the application. Please contact the school.'};
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    if (sh.getRange(row, 3).getValue() !== 'Confirmed') {       // another request may have finished first
+      sh.getRange(row, payCol_(sh, 'PaidAt')).setValue(new Date());
+      finalizeRow_(ss, sh, row, true);
+    }
+  } finally {
+    lock.releaseLock();
+  }
+  return {ok: true, name: name};
+}
+
+// Page calls this after Paystack sends the applicant back
+function verifyPaymentApi(d) {
+  return jsonOut(verifyAndFinalize_(String(d.reference || '').trim()));
+}
+
+// Paystack can also notify the script directly. It is never trusted: the payment is re-checked with Paystack.
+function paystackWebhook_(d) {
+  try {
+    if (d.event === 'charge.success' && d.data && d.data.reference) verifyAndFinalize_(String(d.data.reference));
+  } catch (err) { console.error(err); }
+  return jsonOut({ok: true});
+}
+
+// Issues the student ID, password link and welcome email for one application row
+function finalizeRow_(ss, sh, row, paid) {
+  if (sh.getRange(row, 3).getValue() === 'Confirmed') return false;
+  var head = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  var email = String(sh.getRange(row, head.indexOf('email') + 1).getValue()).trim();
+  var name = sh.getRange(row, head.indexOf('name') + 1).getValue();
+  sh.getRange(row, 3).setValue('Confirmed');
+
+  var b = addStudent(ss, email);
+  var acct = prepareAccount(ss, email);
+  var body = 'Dear ' + name + ',\n\nWelcome to ' + SCHOOL_NAME + '! Your registration is confirmed' +
+    (paid ? ' and we have received your registration fee.' : '.') +
+    '\n\nThe WhatsApp group you joined earlier is temporary. You are being moved to your batch group.';
+  if (acct) {
+    body += '\n\nYour student ID: ' + acct.id +
+      '\nCreate your password here (link valid 24 hours): ' + acct.link +
+      '\nAfter that, sign in with your email or student ID and your password.';
+  }
+  if (b) {
+    body += '\n\nYour batch: ' + b.batch +
+      '\nStarts: ' + Utilities.formatDate(b.start, Session.getScriptTimeZone(), 'EEEE d MMMM yyyy') +
+      (b.wa ? '\nYour batch WhatsApp group: ' + b.wa : '') +
+      '\n\nA new lesson opens each week on the student portal: ' + LESSONS_URL;
+  } else {
+    body += '\n\nWe will email your batch details as soon as the next batch is scheduled.';
+    notifyUnassigned(name, email);
+  }
+  MailApp.sendEmail(email, 'Welcome to ' + SCHOOL_NAME, body);
+  return true;
+}
+
+// Old email-confirmation link (only used when REG_FEE_NGN is 0)
+function confirmApplication(id) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName('Applications');
+  var hit = sh ? sh.createTextFinder(id).matchEntireCell(true).findNext() : null;
+  if (!hit) return HtmlService.createHtmlOutput('Link not valid.');
+  if (sh.getRange(hit.getRow(), 3).getValue() === 'Awaiting payment')
+    return HtmlService.createHtmlOutput('Payment is required before registration is confirmed.');
+  finalizeRow_(ss, sh, hit.getRow(), false);
+  return HtmlService.createHtmlOutput(
+    'Thank you. Your registration is confirmed. Check your email for your student ID and next steps. You can close this page.');
+}
+
+/** Run once from the editor: approves the permission to contact Paystack and checks your secret key. */
+function testPaystack() {
+  var secret = paystackSecret_();
+  if (!secret) { Logger.log('Add the PAYSTACK_SECRET script property first.'); return; }
+  var res = UrlFetchApp.fetch('https://api.paystack.co/transaction?perPage=1',
+    {headers: {Authorization: 'Bearer ' + secret}, muteHttpExceptions: true});
+  var j = JSON.parse(res.getContentText() || '{}');
+  Logger.log(j.status ? 'Paystack key works (' + (secret.indexOf('sk_test') === 0 ? 'TEST' : 'LIVE') + ' mode).' :
+    'Paystack refused the key: ' + (j.message || res.getResponseCode()));
+}

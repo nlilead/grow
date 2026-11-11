@@ -1,0 +1,71 @@
+function schoolPost_(e) {
+  var d = JSON.parse(e.postData.contents);
+  if (d.event) return paystackWebhook_(d);                          // Paystack notification (re-checked with Paystack)
+  if (d.action === 'verifyPayment') return verifyPaymentApi(d);     // applicant returning from Paystack
+  if (STUDENT_ACTIONS.indexOf(d.action) >= 0) return studentApi(d);
+  if (d.action === 'inquiry') return inquiryApi(d);
+  if (d.action) return adminApi(d);
+
+  var lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sh = ss.getSheetByName('Applications') || ss.insertSheet('Applications');
+    var email = String(d.email || '').trim().toLowerCase();
+    if (!email || email.indexOf('@') < 1) return jsonOut({ok: false, error: 'Please enter a valid email.'});
+    d.email = email;
+
+    // An email that has already applied
+    if (sh.getLastRow() > 1) {
+      var v = sh.getDataRange().getValues(), ei = v[0].indexOf('email');
+      for (var i = 1; i < v.length; i++) {
+        if (String(v[i][ei]).trim().toLowerCase() !== email) continue;
+        if (v[i][2] === 'Awaiting payment') {                       // started but never paid: give a fresh payment link
+          var again = startPayment_(sh, i + 1, email);
+          return jsonOut(again.ok ? {ok: true, payUrl: again.payUrl, resumed: true} : again);
+        }
+        return jsonOut({ok: false, duplicate: true, error: v[i][2] === 'Confirmed'
+          ? 'This email is already registered. Sign in on the student portal.'
+          : 'This email has already applied. Check your inbox and spam folder for the confirmation email, or contact the school.'});
+      }
+    }
+
+    var keys = Object.keys(d), id = Utilities.getUuid(), needsPay = REG_FEE_NGN > 0;
+    if (sh.getLastRow() === 0) sh.appendRow(['Timestamp', 'ID', 'Status'].concat(keys));
+    sh.appendRow([new Date(), id, needsPay ? 'Awaiting payment' : 'Pending'].concat(keys.map(function (k) { return d[k]; })));
+
+    if (needsPay) {
+      var pay = startPayment_(sh, sh.getLastRow(), email);
+      return jsonOut(pay.ok ? {ok: true, payUrl: pay.payUrl} : pay);
+    }
+    MailApp.sendEmail(email, 'Action required: confirm your ' + SCHOOL_NAME + ' registration',
+      'Hello ' + d.name + ',\n\nThank you for applying. Please confirm your registration by opening this link:\n' +
+      SCRIPT_URL + '?confirm=' + id + '\n\nOnce confirmed, you will receive your welcome email.');
+    return jsonOut({ok: true});
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+
+
+
+
+  if (['details', 'editApplicant', 'deleteRecord', 'markPaid'].indexOf(d.action) < 0) return null;
+    
+    
+    if (d.action === 'markPaid') {
+    var ap = ss.getSheetByName('Applications'), av = ap.getDataRange().getValues(), aei = av[0].indexOf('email'), arow = -1;
+    for (var m = av.length - 1; m >= 1; m--) {
+      if (String(av[m][aei]).trim().toLowerCase() === email && av[m][2] !== 'Confirmed') { arow = m + 1; break; }
+    }
+    if (arow < 0) return jsonOut({ok: false, error: 'No unpaid application found for that email.'});
+    ap.getRange(arow, payCol_(ap, 'PayRef')).setValue('MANUAL');
+    ap.getRange(arow, payCol_(ap, 'PaidAt')).setValue(new Date());
+    finalizeRow_(ss, ap, arow, true);
+    logChange(ss, who, 'markPaid', email, '', '', 'manual');
+    return jsonOut({ok: true});
+  }
+    
+    
+  
