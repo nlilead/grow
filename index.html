@@ -329,5 +329,13 @@ function showOnboarding(name){
   .catch(function(){bar.textContent='Connection problem while confirming your payment. Please refresh this page.'});
 })();
 </script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (new URLSearchParams(location.search).get('apply') === '1') {
+    var b = document.querySelector('[data-apply]');
+    if (b) b.click();
+  }
+});
+</script>
 </body>
 </html>
