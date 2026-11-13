@@ -101,7 +101,7 @@ function result(j,d){
   const note=j.emailOk===false
     ?`<b>We could not email your report right now.</b> Your results are shown above. Please contact the school and we will send the full report to ${esc(d.email)}.`
     :`<b>Your full report is on its way to ${esc(d.email)}.</b> If you do not see it in a few minutes, check your spam or promotions folder.`;
-  app.innerHTML=`<div class="res">${ring(j.total,170,13)}<h2 style="margin-top:12px">${esc(j.band)}</h2></div>`+j.cats.map(c=>`<div class="cat"><div><b>${esc(c.name)}</b><span>${c.pct}%</span></div><div class="trk"><i style="width:${c.pct}%"></i></div></div>`).join('')+`<div class="note">${note}</div><div class="cta"><a class="btnl" href="index.html?apply=1">Apply to Neshamah</a><a class="btnl ghostl" href="index.html">Back to home</a></div>`;
+  app.innerHTML=`<div class="res">${ring(j.total,170,13)}<h2 style="margin-top:12px">${esc(j.band)}</h2></div>`+j.cats.map(c=>`<div class="cat"><div><b>${esc(c.name)}</b><span>${c.pct}%</span></div><div class="trk"><i style="width:${c.pct}%"></i></div></div>`).join('')+`<div class="note">${note}</div><div class="cta"><a class="btnl" href="model.html">Take A Leap</a><a class="btnl ghostl" href="index.html">Back to home</a></div>`;
 }
 render();
 </script></body></html>
