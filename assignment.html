@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free Leadership Assessment | Neshamah Leadership Institute</title>
+<meta name="description" content="A free 7-minute leadership assessment for pulpit ministers and marketplace leaders. Get a personal report by email.">
+<link rel="icon" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Newsreader:opsz,wght@6..72,500;6..72,700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#101A2E;--mist:#EEF2F6;--gold:#C8962E;--line:#CBD5E1;--bad:#B3261E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--mist);color:var(--ink);font:17px/1.55 'DM Sans',system-ui,sans-serif}
+.wrap{max-width:680px;margin:0 auto;padding:28px 18px 60px}
+header{display:flex;gap:16px;align-items:center;margin-bottom:22px}
+h1,h2{font-family:Newsreader,Georgia,serif;line-height:1.2;margin:0}
+h1{font-size:1.9rem}h2{font-size:1.5rem;margin-bottom:10px}
+.lead{margin:4px 0 0;color:#44536b}
+fieldset{border:0;padding:0;margin:0 0 22px}
+legend{font-weight:500;margin-bottom:8px;padding:0}
+.opts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.opts label{position:relative;display:block}
+.opts input{position:absolute;opacity:0;inset:0}
+.opts span{display:block;text-align:center;padding:9px 4px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:.82rem;cursor:pointer}
+.opts input:checked+span{background:var(--ink);color:#fff;border-color:var(--ink)}
+.opts input:focus-visible+span{outline:3px solid var(--gold);outline-offset:2px}
+@media(max-width:560px){.opts{grid-template-columns:1fr}.opts span{text-align:left;padding:10px 12px;font-size:.95rem}}
+.f{display:block;margin-bottom:14px;font-weight:500}
+.f input,.f select{display:block;width:100%;margin-top:5px;padding:11px;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:.9rem;margin:6px 0 16px}
+.nav{display:flex;justify-content:space-between;gap:10px}
+button{font:inherit;font-weight:700;padding:12px 24px;border-radius:8px;border:2px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer}
+button.ghost{background:transparent;color:var(--ink)}
+button:disabled{opacity:.6;cursor:wait}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.err{color:var(--bad);min-height:1.5em;margin:10px 0 0}
+.res{text-align:center;margin-bottom:24px}
+.cat{margin-bottom:14px}.cat div:first-child{display:flex;justify-content:space-between}
+.trk{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin-top:4px}.trk i{display:block;height:100%;background:var(--gold)}
+.note{background:#fff;border-left:4px solid var(--gold);padding:14px 16px;border-radius:0 8px 8px 0;margin-top:22px}
+.brand{display:block;margin-bottom:16px}.logo{height:46px;width:auto;display:block}
+.priv{font-size:.85rem;color:#44536b;margin:-6px 0 16px}
+.cta{display:grid;gap:10px;margin-top:22px}
+.btnl{display:block;text-align:center;padding:14px;border-radius:8px;font-weight:700;text-decoration:none;background:var(--ink);color:#fff;border:2px solid var(--ink)}
+.btnl.ghostl{background:transparent;color:var(--ink)}
+.btnl:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+</style></head><body><div class="wrap">
+<a class="brand" href="index.html"><img class="logo" src="logo-horizontal-light.png" alt="Neshamah Leadership Institute"></a>
+<header><div id="ring"></div><div><h1>Free Leadership Assessment</h1><p class="lead">Neshamah Leadership Institute. 24 statements, about 7 minutes.</p></div></header>
+<main id="app"></main></div>
+<script>
+const SCRIPT_URL='PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+const SCALE=['Highly agree','Mostly agree','Neutral','Mostly disagree','Highly disagree'];
+const CATS=[
+{n:'Clarity of Calling',q:['I can clearly state the assignment God has given me.','I know my primary gifts and strengths.','My daily priorities reflect my calling, not just urgent demands.','I say no to opportunities that do not fit my assignment.']},
+{n:'Self-Awareness',q:['I am honest with myself about my weaknesses.','I understand how my leadership style affects others.','I stay composed and respond well under pressure.','I invite honest feedback and receive it without getting defensive.']},
+{n:'Character',q:['My private life matches my public image.','I keep my commitments, even when it costs me.','I take responsibility without blaming others.','I keep regular time with God that feeds my inner life.']},
+{n:'Practical Leadership Skills',q:['I communicate vision clearly to the people I lead.','I make decisions with confidence and on time.','I delegate and invest in developing others.','I turn vision into action with plans and follow-through.']},
+{n:'Influence in My Sphere',q:['I intentionally carry Kingdom values into my church, workplace or community.','People beyond my immediate circle seek my counsel.','I steward my time, money and people faithfully.','I am building something that will outlast me.']},
+{n:'Community',q:['I have leaders who sharpen and challenge me.','I am accountable to someone who can speak into my life.','I regularly invest in other leaders.','I do not carry leadership alone.']}];
+const A=Array(24).fill(null);let step=0;
+try{const sv=JSON.parse(sessionStorage.getItem('asg')||'null');if(sv&&Array.isArray(sv.A)&&sv.A.length===24){sv.A.forEach((v,i)=>A[i]=v);step=Math.min(Number(sv.step)||0,6)}}catch(e){}
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ring=(p,s=64,w=7)=>{const r=(s-w)/2,c=2*Math.PI*r,m=s/2;return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}" role="img" aria-label="${p} percent"><circle cx="${m}" cy="${m}" r="${r}" fill="none" stroke="#CBD5E1" stroke-width="${w}"/><circle cx="${m}" cy="${m}" r="${r}" fill="none" stroke="#C8962E" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c*(1-p/100)}" transform="rotate(-90 ${m} ${m})"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" font-size="${s*.27}" font-weight="700" fill="#101A2E">${p}%</text></svg>`};
+function render(){
+  try{sessionStorage.setItem('asg',JSON.stringify({A,step}))}catch(e){}
+  $('#ring').innerHTML=ring(Math.round(Math.min(step,6)/6*100));
+  if(step===6)return form();
+  const c=CATS[step];
+  app.innerHTML=(step?'':'<p class="lead" style="margin-bottom:18px">Answer honestly. Your report is only as useful as your answers.</p>')+`<h2>${c.n}</h2>`+c.q.map((t,j)=>{const i=step*4+j;return `<fieldset><legend>${i+1}. ${t}</legend><div class="opts">${SCALE.map((s,k)=>`<label><input type="radio" name="q${i}" value="${4-k}" ${A[i]===4-k?'checked':''}><span>${s}</span></label>`).join('')}</div></fieldset>`}).join('')+`<div class="nav">${step?'<button class="ghost" id="back">Back</button>':'<span></span>'}<button id="next">Next</button></div><p class="err" id="err" role="alert"></p>`;
+  app.querySelectorAll('input').forEach(r=>r.onchange=()=>A[+r.name.slice(1)]=+r.value);
+  $('#next').onclick=()=>{if(A.slice(step*4,step*4+4).includes(null)){$('#err').textContent='Answer every statement to continue.';return}step++;render();scrollTo(0,0)};
+  if(step)$('#back').onclick=()=>{step--;render();scrollTo(0,0)};
+}
+function form(){
+  app.innerHTML=`<h2>Where should we send your report?</h2><p class="lead" style="margin-bottom:16px">Your results are ready. Tell us where to send them.</p>
+<label class="f">Full name<input id="name" autocomplete="name" maxlength="100"></label>
+<label class="f">Email address<input id="email" type="email" autocomplete="email" maxlength="150"></label>
+<label class="f">I serve primarily as a<select id="role"><option>Pulpit minister</option><option>Marketplace leader</option><option>Both</option></select></label>
+<input id="hp" style="display:none" tabindex="-1" autocomplete="off" aria-hidden="true">
+<label class="chk"><input type="checkbox" id="ok"> I agree to receive my report and occasional updates from Neshamah Leadership Institute. You can stop updates at any time by replying to any email.</label>
+<p class="priv">We use your details only to send your report and school updates.</p>
+<div class="nav"><button class="ghost" id="back">Back</button><button id="send">Get my report</button></div><p class="err" id="err" role="alert"></p>`;
+  $('#back').onclick=()=>{step--;render()};
+  $('#send').onclick=submit;
+}
+async function submit(){
+  const d={action:'assignment',answers:A,name:$('#name').value.trim(),email:$('#email').value.trim().toLowerCase(),role:$('#role').value,ok:$('#ok').checked,hp:$('#hp').value};
+  const e=!d.name?'Enter your name.':!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)?'Enter a valid email address.':!d.ok?'Tick the box to receive your report.':'';
+  if(e){$('#err').textContent=e;return}
+  const b=$('#send');b.disabled=true;b.textContent='Sending your report...';
+  try{
+    const r=await fetch(SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(d)});
+    const j=await r.json();if(!j.ok)throw Error(j.error);
+    try{sessionStorage.removeItem('asg');sessionStorage.setItem('asgres',JSON.stringify({j:j,email:d.email}))}catch(x){}
+    result(j,d);
+  }catch(x){$('#err').textContent=(x.message||'We could not send your report.')+' Please try again.';b.disabled=false;b.textContent='Get my report'}
+}
+function result(j,d){
+  $('#ring').innerHTML='';step=7;scrollTo(0,0);
+  const note=j.emailOk===false
+    ?`<b>We could not email your report right now.</b> Your results are shown above. Please contact the school and we will send the full report to ${esc(d.email)}.`
+    :`<b>Your full report is on its way to ${esc(d.email)}.</b> If you do not see it in a few minutes, check your spam or promotions folder.`;
+  app.innerHTML=`<div class="res">${ring(j.total,170,13)}<h2 style="margin-top:12px">${esc(j.band)}</h2></div>`+j.cats.map(c=>`<div class="cat"><div><b>${esc(c.name)}</b><span>${c.pct}%</span></div><div class="trk"><i style="width:${c.pct}%"></i></div></div>`).join('')+`<div class="note">${note}</div><div class="cta"><a class="btnl" href="model.html?from=assignment">See how we would develop you</a><a class="btnl ghostl" href="index.html?apply=1">Apply now</a></div>`;
+}
+let shown=false;
+try{
+  const nav=(performance.getEntriesByType('navigation')[0]||{}).type;
+  const want=nav==='back_forward'||nav==='reload'||/[?&]results=1/.test(location.search);
+  const sr=JSON.parse(sessionStorage.getItem('asgres')||'null');
+  if(sr&&sr.j&&Array.isArray(sr.j.cats)&&want){result(sr.j,{email:sr.email||''});shown=true}
+  else if(!want)sessionStorage.removeItem('asgres');
+}catch(e){}
+if(!shown)render();
+</script></body></html>
