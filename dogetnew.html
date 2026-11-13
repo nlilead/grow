@@ -1,0 +1,25 @@
+function doPost(e) {
+  var body = {};
+  try { body = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { /* leave empty */ }
+  if (body.fn) return assessRoute_(body);
+
+  var act = String(body.action || '').toLowerCase();
+  if (act === 'assignment') return asgPost_(body);       // free public leadership assessment
+  if (act === 'submitself') {                            // Blackout Index: leader needs an access code
+    try {
+      var a = accessCheck_(body.token, 'blackout');
+      body.name = a.name; body.email = a.email;           // identity comes from the code
+    } catch (err) {
+      return jsonOut({ok: false, access: true, error: (err && err.message) || String(err)});
+    }
+    return blackoutPost_(body);
+  }
+  if (act === 'submitteam') return blackoutPost_(body);   // team members use the leader's private link
+  return schoolPost_(e);
+}
+
+function doGet(e) {
+  var p = (e && e.parameter) || {};
+  if (String(p.action || '').toLowerCase() === 'getleader') return blackoutGet_(e);
+  return schoolGet_(e);
+}
