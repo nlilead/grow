@@ -1,0 +1,109 @@
+/**
+ * ReportKit.gs: one shared look for every Neshamah PDF report.
+ * Layout: logo and contact block, gold double rule, grey reference line, dark title banner with a big
+ * gold figure, navy table headers with light zebra rows, cream note boxes, small grey notes, footer line.
+ * Every report builds its page from these pieces, so they all look alike.
+ */
+
+// ---------- SETTINGS ----------
+var RK_CONTACT = ['Your address line', 'your@email.com', 'Tel: your phone number'];  // shown top right; use [] to hide
+var RK_FOOTER = 'Neshamah Leadership Institute | your@email.com | your phone number';
+// ------------------------------
+
+var RK = {NAVY: '#1F3A5F', GOLD: '#C9A227', DARK: '#111111', ZEBRA: '#EEF2F7', LINE: '#C8D0D9',
+  MUTED: '#5A6B7F', INK: '#1A1A1A', CREAM: '#FDF3D0', RED: '#B03A2E', TRACK: '#E3E8EE'};
+
+function rkEsc(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function rkHeader() {
+  var logo = (typeof NLI_LOGO_LIGHT !== 'undefined')
+    ? '<img src="' + NLI_LOGO_LIGHT + '" height="54" style="height:54px">'
+    : '<span style="font-size:20px;font-weight:bold;color:' + RK.NAVY + '">NESHAMAH LEADERSHIP INSTITUTE</span>';
+  var contact = RK_CONTACT.length
+    ? '<td valign="middle" align="right" style="font-size:11px;color:#333;line-height:1.5">' + RK_CONTACT.map(rkEsc).join('<br>') + '</td>' : '';
+  return '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr><td valign="middle">' + logo + '</td>' +
+    contact + '</tr></table>' +
+    '<div style="border-top:3px solid ' + RK.GOLD + ';margin-top:10px"></div>' +
+    '<div style="border-top:1px solid ' + RK.GOLD + ';margin-top:3px"></div>';
+}
+
+// Grey reference line: "REPORT | Ref: ... | date | For: ..."
+function rkMeta(label, parts) {
+  return '<p style="font-size:12px;color:' + RK.MUTED + ';margin:14px 0 12px;line-height:1.5"><b style="color:' + RK.NAVY + '">' +
+    rkEsc(label) + '</b> | ' + parts.map(rkEsc).join(' | ') + '</p>';
+}
+
+// Dark banner: small gold kicker, white title, short description, big gold figure with a caption
+function rkHero(kicker, title, desc, big, caption) {
+  return '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>' +
+    '<td bgcolor="' + RK.DARK + '" valign="middle" style="background-color:' + RK.DARK + ';padding:18px 20px">' +
+    '<div style="color:' + RK.GOLD + ';font-size:12px;font-weight:bold">' + rkEsc(kicker) + '</div>' +
+    '<div style="color:#fff;font-size:22px;font-weight:bold;margin:4px 0 8px">' + rkEsc(title) + '</div>' +
+    '<div style="color:#D8DDE3;font-size:12px;line-height:1.5">' + rkEsc(desc) + '</div></td>' +
+    '<td bgcolor="' + RK.DARK + '" valign="middle" align="right" width="34%" style="background-color:' + RK.DARK + ';padding:18px 20px">' +
+    '<div style="color:' + RK.GOLD + ';font-size:36px;font-weight:bold">' + rkEsc(big) + '</div>' +
+    '<div style="color:#fff;font-size:12px;margin-top:4px">' + rkEsc(caption) + '</div></td></tr></table>';
+}
+
+function rkH2(text) {
+  return '<h2 style="color:' + RK.NAVY + ';font-size:16px;margin:22px 0 8px">' + rkEsc(text) + '</h2>';
+}
+
+// cols: [{h: 'Heading', w: '20%', a: 'left|center|right', b: true (bold column)}]
+// rows: arrays of cell HTML (escape text with rkEsc), or {total: true, cells: [...]} for the cream total row
+function rkTable(cols, rows) {
+  var head = cols.map(function (c) {
+    return '<td width="' + (c.w || '') + '" align="' + (c.a || 'left') + '" bgcolor="' + RK.NAVY + '" style="background-color:' + RK.NAVY +
+      ';color:#fff;font-weight:bold;padding:7px 8px;border:1px solid ' + RK.NAVY + '">' + rkEsc(c.h) + '</td>';
+  }).join('');
+  var body = rows.map(function (r, i) {
+    var total = !!r.total, cells = r.cells || r, bg = total ? RK.CREAM : (i % 2 === 1 ? RK.ZEBRA : '#FFFFFF');
+    return '<tr style="page-break-inside:avoid">' + cells.map(function (cell, k) {
+      var c = cols[k] || {};
+      return '<td valign="top" align="' + (c.a || 'left') + '" bgcolor="' + bg + '" style="background-color:' + bg + ';padding:7px 8px;border:1px solid ' +
+        RK.LINE + ';font-size:12px;line-height:1.45;' + (c.b || total ? 'font-weight:bold;' : '') + '">' + cell + '</td>';
+    }).join('') + '</tr>';
+  }).join('');
+  return '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 6px"><tr>' + head + '</tr>' + body + '</table>';
+}
+
+// Cream box with a gold border, for the one note you want read
+function rkNote(html) {
+  return '<table width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0"><tr><td bgcolor="' + RK.CREAM + '" style="background-color:' +
+    RK.CREAM + ';border:1px solid ' + RK.GOLD + ';padding:10px 12px;font-size:12px;line-height:1.5">' + html + '</td></tr></table>';
+}
+
+function rkWarn(html) {
+  return '<p style="color:' + RK.RED + ';font-size:12px;line-height:1.5;margin:10px 0">' + html + '</p>';
+}
+
+function rkSmall(html) {
+  return '<p style="font-size:11px;color:' + RK.MUTED + ';line-height:1.5;margin:8px 0">' + html + '</p>';
+}
+
+function rkPara(html) {
+  return '<p style="font-size:13px;line-height:1.6;margin:6px 0;color:' + RK.INK + '">' + html + '</p>';
+}
+
+// A horizontal bar for use inside a table cell. pct is 0 to 100.
+function rkBar(pct, color) {
+  var p = Math.max(0, Math.min(100, Math.round(pct)));
+  return '<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:1px 0"><tr>' +
+    (p > 0 ? '<td width="' + p + '%" height="9" bgcolor="' + color + '" style="background-color:' + color + ';font-size:1px">&nbsp;</td>' : '') +
+    (p < 100 ? '<td width="' + (100 - p) + '%" height="9" bgcolor="' + RK.TRACK + '" style="background-color:' + RK.TRACK + ';font-size:1px">&nbsp;</td>' : '') +
+    '</tr></table>';
+}
+
+function rkBreak() { return '<div style="page-break-before:always"></div>'; }
+
+function rkFooter() {
+  return '<div style="border-top:1px solid ' + RK.GOLD + ';margin-top:26px;padding-top:6px;font-size:10px;color:' + RK.MUTED + '">' + rkEsc(RK_FOOTER) + '</div>';
+}
+
+// Wraps the finished page
+function rkDoc(inner) {
+  return '<html><head><meta charset="utf-8"></head><body style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:' + RK.INK +
+    ';margin:0;padding:0">' + inner + rkFooter() + '</body></html>';
+}

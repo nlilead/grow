@@ -1,0 +1,142 @@
+/**
+ * Assignment.gs: the free public Leadership Assessment (assignment.html).
+ * Visitors answer 24 statements, get scored in six areas, and receive a report by email.
+ * Results go to the "AssignmentResults" tab. No sign-in is needed, so there are limits to stop abuse.
+ */
+
+// ---------- SETTINGS ----------
+var ASG_SITE_URL = 'https://yourdomain.com/index.html';                 // the Apply button in the email goes here
+var ASG_LOGO_URL = 'https://yourdomain.com/logo-horizontal-light.png';  // public address of your logo (shown in the email)
+var ASG_PER_EMAIL = 3;       // reports per email address per 6 hours
+var ASG_DAILY_CAP = 150;     // reports per day, all visitors together
+var ASG_MAIL_RESERVE = 30;   // emails always kept free for payments, student IDs and access codes
+var ASG_TAB = 'AssignmentResults';
+// --------------------------------
+
+var ASG_ROLES = ['Pulpit minister', 'Marketplace leader', 'Both'];
+var ASG_HEAD = ['Timestamp', 'Name', 'Email', 'Role', 'Answers', 'Clarity %', 'Self-Awareness %', 'Character %',
+  'Skills %', 'Influence %', 'Community %', 'Total %', 'Band', 'Consent', 'Email sent'];
+var ASG_CATS = [
+  {n: 'Clarity of Calling', tip: 'Write your assignment in one sentence, then list what in your week does not serve it. Ask a mature leader who knows you well to confirm it.'},
+  {n: 'Self-Awareness', tip: 'Ask two trusted people what they see in your leadership that you may not. Listen without defending yourself.'},
+  {n: 'Character', tip: 'Choose one private habit to strengthen, such as a fixed time with God or a weekly integrity check-in, and keep it for 30 days.'},
+  {n: 'Practical Leadership Skills', tip: 'Pick one skill, such as delegation or clear communication, and practise it deliberately this month.'},
+  {n: 'Influence in My Sphere', tip: 'Name the sphere God placed you in and one concrete way to carry Kingdom values into it this month.'},
+  {n: 'Community', tip: 'Build a circle of two or three leaders who will challenge and support you on a regular schedule.'}];
+var ASG_BAND_MSG = {
+  'Thriving Leader': 'Your leadership is strong across the board. Focus on coaching and multiplying other leaders.',
+  'Strong Leader': 'Your leadership has grown significantly. Fine-tune the areas needing more attention below.',
+  'Developing Leader': 'You have a solid base. Set clear growth goals and an action plan for the areas below.',
+  'Foundation Stage': 'This is a starting line, not a verdict. Seek mentoring, training and community to grow with intention.'};
+
+function asgEsc_(s) {
+  return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c];
+  });
+}
+
+function asgSheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet(), sh = ss.getSheetByName(ASG_TAB);
+  if (!sh) { sh = ss.insertSheet(ASG_TAB); sh.appendRow(ASG_HEAD); sh.setFrozenRows(1); }
+  return sh;
+}
+
+function asgValidate_(d) {
+  var name = String(d.name || '').trim(), email = String(d.email || '').trim();
+  if (name.length < 2 || name.length > 100) return 'Enter your name.';
+  if (email.length > 150 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Enter a valid email address.';
+  if (ASG_ROLES.indexOf(d.role) < 0) return 'Choose your role.';
+  if (d.ok !== true) return 'Consent is required.';
+  if (!Array.isArray(d.answers) || d.answers.length !== 24 ||
+      d.answers.some(function (a) { return !Number.isInteger(a) || a < 0 || a > 4; })) return 'Answer all 24 statements.';
+  return '';
+}
+
+function asgScore_(a) {
+  var cats = ASG_CATS.map(function (c, i) {
+    var sum = a.slice(i * 4, i * 4 + 4).reduce(function (x, y) { return x + y; }, 0);
+    return {name: c.n, tip: c.tip, pct: Math.round(sum / 16 * 100)};
+  });
+  var total = Math.round(a.reduce(function (x, y) { return x + y; }, 0) / 96 * 100);
+  var band = total >= 85 ? 'Thriving Leader' : total >= 70 ? 'Strong Leader' : total >= 50 ? 'Developing Leader' : 'Foundation Stage';
+  return {cats: cats, total: total, band: band};
+}
+
+function asgEmail_(d, r) {
+  var first = d.name.split(' ')[0];
+  var s = r.cats.slice().sort(function (a, b) { return b.pct - a.pct; });
+  var top = s.slice(0, 2), low = s.slice(-2).reverse();
+  var apply = ASG_SITE_URL + (ASG_SITE_URL.indexOf('?') < 0 ? '?apply=1' : '&apply=1');
+  var bar = function (p) {
+    return '<div style="background:#dbe3ec;border-radius:6px;height:10px"><div style="background:#C8962E;width:' + p + '%;height:10px;border-radius:6px"></div></div>';
+  };
+  var html = '<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#101A2E;line-height:1.5">' +
+    '<div style="background:#fff;padding:18px 24px;border:1px solid #dbe3ec;border-bottom:3px solid #C8962E;border-radius:8px 8px 0 0">' +
+    (ASG_LOGO_URL ? '<img src="' + asgEsc_(ASG_LOGO_URL) + '" alt="' + asgEsc_(SCHOOL_NAME) + '" style="height:46px;display:block;margin-bottom:10px">' : '') +
+    '<h2 style="margin:0">Your Leadership Assessment Report</h2></div>' +
+    '<div style="padding:24px;border:1px solid #dbe3ec;border-top:0">' +
+    '<p>Hi ' + asgEsc_(first) + ',</p><p>Thank you for looking honestly at your leadership. Here is where you stand.</p>' +
+    '<p style="font-size:42px;margin:8px 0"><b>' + r.total + '%</b> <span style="font-size:18px">' + r.band + '</span></p>' +
+    '<p>' + ASG_BAND_MSG[r.band] + '</p>' +
+    r.cats.map(function (c) { return '<p style="margin:14px 0 4px"><b>' + c.name + '</b> (' + c.pct + '%)</p>' + bar(c.pct); }).join('') +
+    '<h3>Your strongest areas</h3>' +
+    top.map(function (c) { return '<p><b>' + c.name + '.</b> Keep investing here, and help other leaders grow in it.</p>'; }).join('') +
+    '<h3>Where to focus next</h3>' +
+    low.map(function (c) { return '<p><b>' + c.name + '.</b> ' + c.tip + '</p>'; }).join('') +
+    '<p>You were not meant to grow alone. ' + asgEsc_(SCHOOL_NAME) + ' equips pulpit ministers and marketplace leaders through biblical teaching, practical leadership training and honest self-discovery.</p>' +
+    '<p><a href="' + asgEsc_(apply) + '" style="background:#C8962E;color:#101A2E;padding:12px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Apply to ' + asgEsc_(SCHOOL_NAME) + '</a></p>' +
+    '<p style="font-size:12px;color:#667">This assessment is a self-reflection tool, not a professional evaluation. ' +
+    'You agreed to receive occasional updates; reply to this email at any time to stop them.</p></div></div>';
+  var text = 'Hi ' + first + ',\n\nYour Leadership Assessment: ' + r.total + '% (' + r.band + ')\n' + ASG_BAND_MSG[r.band] + '\n\n' +
+    r.cats.map(function (c) { return c.name + ': ' + c.pct + '%'; }).join('\n') + '\n\nWhere to focus next:\n' +
+    low.map(function (c) { return '- ' + c.name + ': ' + c.tip; }).join('\n') + '\n\nApply: ' + apply +
+    '\n\nThis is a self-reflection tool, not a professional evaluation. Reply to stop updates.';
+  MailApp.sendEmail({to: d.email, subject: 'Your Leadership Assessment Report: ' + r.total + '% (' + r.band + ')',
+    htmlBody: html, body: text, name: SCHOOL_NAME});
+}
+
+// Called from Main.gs for requests with action "assignment"
+function asgPost_(d) {
+  try {
+    if (d.hp) return jsonOut({ok: true, total: 0, band: '', cats: [], emailOk: true});   // bots fill the hidden field
+    var bad = asgValidate_(d);
+    if (bad) return jsonOut({ok: false, error: bad});
+    d.name = String(d.name).trim();
+    d.email = String(d.email).trim().toLowerCase();
+
+    var cache = CacheService.getScriptCache(), key = 'asg_' + d.email, n = Number(cache.get(key) || 0);
+    if (n >= ASG_PER_EMAIL)
+      return jsonOut({ok: false, error: 'This email address has already requested several reports. Please check your inbox, or try again later.'});
+
+    var r = asgScore_(d.answers), row;
+    var lock = LockService.getScriptLock();
+    lock.waitLock(20000);
+    try {
+      var props = PropertiesService.getScriptProperties();
+      var today = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      var parts = String(props.getProperty('ASG_DAY') || '').split(':');
+      var count = parts[0] === today ? Number(parts[1]) || 0 : 0;
+      if (count >= ASG_DAILY_CAP)
+        return jsonOut({ok: false, error: 'We have reached today\u2019s limit for free reports. Please try again tomorrow.'});
+      props.setProperty('ASG_DAY', today + ':' + (count + 1));
+      var sh = asgSheet_();
+      sh.appendRow([new Date(), safeCell(d.name), d.email, d.role, d.answers.join(',')]
+        .concat(r.cats.map(function (c) { return c.pct; }), [r.total, r.band, 'Yes', '']));
+      row = sh.getLastRow();
+    } finally {
+      lock.releaseLock();
+    }
+    cache.put(key, n + 1, 21600);
+
+    var emailOk = false;
+    if (MailApp.getRemainingDailyQuota() > ASG_MAIL_RESERVE) {   // keep emails free for payments and student IDs
+      try { asgEmail_(d, r); emailOk = true; } catch (err) { console.error(err); }
+    }
+    asgSheet_().getRange(row, ASG_HEAD.length).setValue(emailOk ? 'Yes' : 'No');
+    return jsonOut({ok: true, total: r.total, band: r.band, emailOk: emailOk,
+      cats: r.cats.map(function (c) { return {name: c.name, pct: c.pct}; })});
+  } catch (err) {
+    console.error(err);
+    return jsonOut({ok: false, error: 'Something went wrong on our side. Please try again.'});
+  }
+}

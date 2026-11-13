@@ -1,0 +1,51 @@
+function buildPdfHtml_(L, R) {
+  const date = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'd MMMM yyyy');
+  const sign = n => (n > 0 ? '+' : '') + n;
+  const stmt = i => rkEsc((i + 1) + '. ' + STATEMENTS[i]);
+
+  const scores = [
+    ['Leader self-score', '<b>' + L.selfPct + '%</b>', rkEsc(R.sb[1] + ' (' + R.sb[2] + ')')],
+    ['Team score (average of ' + R.n + ' responses)', '<b>' + R.teamPct + '%</b>', rkEsc(R.tb[1] + ' (' + R.tb[2] + ')')],
+    {total: true, cells: ['Gap (leader minus team)', sign(R.gap) + ' points', rkEsc(Math.abs(R.gap) >= 15 ? 'Worth a direct conversation' : 'Leader and team see things similarly')]}
+  ];
+  const breakdown = R.idx.map(i => [String(i + 1), rkEsc(STATEMENTS[i]), String(L.self[i]), R.avg[i].toFixed(1),
+    rkBar(L.self[i] / 5 * 100, RK.GOLD) + rkBar(R.avg[i] / 5 * 100, RK.NAVY)]);
+  const risks = R.weakest.map(i => [stmt(i), R.avg[i].toFixed(1), String(L.self[i]), rkEsc(ACTIONS[i])]);
+  const gaps = R.widest.map(i => [stmt(i), String(L.self[i]), R.avg[i].toFixed(1), sign(Math.round((L.self[i] - R.avg[i]) * 10) / 10)]);
+  const actions = R.focus.map((i, k) => [String(k + 1), rkEsc(ACTIONS[i])]);
+  const steps = R.tb[4].map((s, k) => [String(k + 1), rkEsc(s)]);
+
+  return rkDoc(
+    rkHeader() +
+    rkMeta('REPORT', ['Ref: BI-' + String(L.id || 'SAMPLE').slice(0, 6).toUpperCase(), date, 'Prepared for: ' + L.name]) +
+    rkHero('BLACKOUT INDEX', 'LEADERSHIP CONTINUITY REPORT',
+      'How well would the team carry on if ' + L.name + ' were unavailable for 48 hours?', R.teamPct + '%', 'team score: ' + R.tb[1]) +
+
+    rkH2('Your scores') +
+    rkTable([{h: 'Measure', w: '38%', b: true}, {h: 'Result', w: '17%', a: 'right'}, {h: 'Band'}], scores) +
+
+    rkH2('What the team score means: ' + R.tb[1]) + rkPara(rkEsc(R.tb[3])) +
+    rkH2('Reading the gap') + rkPara(rkEsc(R.reading + (R.gapNote ? ' ' + R.gapNote : ''))) +
+
+    rkH2('Full breakdown: every statement') +
+    rkSmall('Scale: 1 = not true at all, 5 = completely true. Bars: <b style="color:' + RK.GOLD + '">gold</b> = leader, <b style="color:' + RK.NAVY + '">navy</b> = team average.') +
+    rkTable([{h: '#', w: '5%'}, {h: 'Statement', w: '45%'}, {h: 'Leader', w: '9%', a: 'center'}, {h: 'Team', w: '9%', a: 'center'}, {h: 'Chart', w: '32%'}], breakdown) +
+
+    rkH2('Biggest risks (lowest team ratings)') +
+    rkTable([{h: 'Statement', w: '38%', b: true}, {h: 'Team', w: '9%', a: 'center'}, {h: 'Leader', w: '9%', a: 'center'}, {h: 'Suggested improvement'}], risks) +
+
+    rkH2('Where leader and team disagree most') +
+    rkTable([{h: 'Statement', w: '58%', b: true}, {h: 'Leader', w: '14%', a: 'center'}, {h: 'Team', w: '14%', a: 'center'}, {h: 'Gap', a: 'center'}], gaps) +
+
+    rkH2('Priority actions for this team') +
+    rkSmall('Based on the lowest team ratings and the biggest disagreements.') +
+    rkTable([{h: '#', w: '6%'}, {h: 'Action'}], actions) +
+
+    rkH2('Next steps for the ' + R.tb[1] + ' band') +
+    rkTable([{h: '#', w: '6%'}, {h: 'Step'}], steps) +
+
+    rkNote('<b>A note on this score.</b> This score reflects how the team would function, not how good any person is. A low score is not a failure. ' +
+      'It is information the leader can act on, and every leader can raise the score by sharing what they know and trusting others to use it.') +
+    rkSmall('Only combined team results are shown; individual responses are not reported.')
+  );
+}

@@ -1,0 +1,8 @@
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  if (new URLSearchParams(location.search).get('apply') === '1') {
+    var b = document.querySelector('[data-apply]');
+    if (b) b.click();
+  }
+});
+</script>
